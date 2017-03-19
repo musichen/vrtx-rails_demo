@@ -1,0 +1,57 @@
+# TODO Useful tasks
+
+# improve:  bundle install --binstubs --deployment --without test development
+# bundle exec rake assets:precompile
+
+FROM jruby:9.1.2.0-jdk
+
+ENV HOME /home/app
+
+EXPOSE 3000
+
+RUN useradd -m -s /bin/bash app
+
+RUN apt-get update && apt-get install -y ca-certificates build-essential postgresql-client-9.4
+
+RUN apt-get install -y redis-server
+RUN apt-get install -y less
+RUN apt-get install -y nano
+RUN apt-get install -y ant
+RUN apt-get install -y maven
+
+
+RUN apt-get install -y file
+RUN apt-get install -y ImageMagick
+
+RUN gem install -N bundler -v 1.12.5
+
+RUN echo "About to clone Jubilee 1" && git clone https://github.com/Mahaswami/jubilee.git
+WORKDIR /jubilee
+RUN bundle && bundle exec rake install
+
+# Copy the Gemfile and Gemfile.lock into the image.
+# Temporarily set the working directory to where they are.
+WORKDIR /tmp
+ADD Gemfile Gemfile
+ADD Gemfile.lock Gemfile.lock
+RUN bundle install
+
+RUN apt-get install -y ghostscript
+
+# Everything up to here was cached. This includes
+# the bundle install, unless the Gemfiles changed.
+# Now copy the app into the image.
+
+WORKDIR /home/app
+
+EXPOSE 5701
+EXPOSE 15701
+
+RUN apt-get install -y wget
+RUN wget -P /usr/local/bundle/gems/jubilee-3.0.0.beta2-java/jars http://central.maven.org/maven2/com/hazelcast/hazelcast-cloud/3.6.3/hazelcast-cloud-3.6.3.jar
+#ENV JRUBY_OPTS "-J-Dvertx.hazelcast.config=/tmp/aws-default-cluster.xml"
+
+RUN echo '#!/bin/bash \n cd /home/app; bundle exec rake db:migrate; bundle exec rake db:seed;cp aws-default-cluster.xml /tmp/aws-default-cluster.xml ; export set JRUBY_OPTS="`ruby config_host.rb /tmp/aws-default-cluster.xml /tmp/aws-default-cluster.xml`"; echo $JRUBY_OPTS; jubilee -n 1 -p 3000 --cluster --cluster-port 15701 --eventbus eventbus' > /tmp/startup.sh; \
+    chmod +x /tmp/startup.sh
+
+CMD ["/tmp/startup.sh"]

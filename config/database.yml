@@ -1,0 +1,27 @@
+# SQLite version 3.x
+#   gem 'activerecord-jdbcsqlite3-adapter'
+#
+# Configure Using Gemfile
+# gem 'activerecord-jdbcsqlite3-adapter'
+#
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  # For details on connection pooling, see rails configuration guide
+  # http://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: 20
+  username: postgres
+  password: 
+  port: 5432
+  host: 172.17.0.2
+  reconnect: true
+
+development:
+  <<: *default
+  database: rails_dev_db
+
+# Configuring an SQLite3 Database for JRuby Platform
+#If you choose to use SQLite3 and are using JRuby, your config/database.yml will look a little different. Here’s the development section:
+# development:
+ # adapter: jdbcsqlite3
+  #database: db/development.sqlite3
