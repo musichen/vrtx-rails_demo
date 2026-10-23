@@ -29,6 +29,14 @@ bundle install
 bundle exec rails server
 ```
 
+## Tests
+
+The Rails test suite lives under `test/` (controllers, fixtures, helpers, and integration). Run it with:
+
+```bash
+bundle exec rake test
+```
+
 ## Notes
 
 - `README.rdoc` is the stock Rails readme template.
